@@ -1,0 +1,50 @@
+volumes:
+  pg_data:
+  static_data:
+  media_data:
+
+services:
+
+  db:
+    image: postgres:16.6
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  backend:
+    build: ./
+    env_file: .env
+    volumes:
+      - static_data:/backend_static
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py makemigrations &&
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      cp -r /app/collected_static/. /backend_static/static/ &&
+      gunicorn config.wsgi:application \
+      --bind 0.0.0.0:8000 \
+      --timeout 120 --chdir=/app"
+    restart: always
+
+  gateway:
+    image: nginx:1.22.1
+    volumes:
+      - ./nginx.conf:/etc/nginx/templates/default.conf.template
+      - static_data:/staticfiles/
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 8000:80
+    restart: always
