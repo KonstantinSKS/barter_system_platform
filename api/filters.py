@@ -8,7 +8,7 @@ from ads import choices as chcs
 
 def generate_ads_categories_label():
     """Динаическая генерация доступных заголовков модели Category
-    для AdFilter."""
+    для AdFilter (отложенный вызов через lazy)."""
 
     try:
         categories = Category.objects.all()
