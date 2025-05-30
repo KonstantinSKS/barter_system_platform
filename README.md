@@ -78,6 +78,7 @@ python manage.py runserver
 ### Вариант 2: Запуск в Docker
 В .env-файле установить `DOCKER=True`.
 
+Запустить проект:
 ```
 docker compose up -d --build
 ```

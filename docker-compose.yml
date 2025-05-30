@@ -26,14 +26,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: >
-      sh -c "python manage.py makemigrations &&
-      python manage.py migrate &&
-      python manage.py collectstatic --noinput &&
-      cp -r /app/collected_static/. /backend_static/static/ &&
-      gunicorn config.wsgi:application \
-      --bind 0.0.0.0:8000 \
-      --timeout 120 --chdir=/app"
     restart: always
 
   gateway:
